@@ -1,0 +1,9 @@
+[submodule "DPE-Energy-Performance-Analysis-ETL"]
+	path = DPE-Energy-Performance-Analysis-ETL
+	url = https://github.com/fereol023/DPE-Energy-Performance-Analysis-ETL.git
+[submodule "DPE-Energy-Performance-Analysis-API"]
+	path = DPE-Energy-Performance-Analysis-API
+	url = https://github.com/fereol023/DPE-Energy-Performance-Analysis-API.git
+[submodule "DPE-Energy-Performance-Analysis-ClientApp"]
+	path = DPE-Energy-Performance-Analysis-ClientApp
+	url = https://github.com/fereol023/DPE-Energy-Performance-Analysis-ClientApp.git
