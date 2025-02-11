@@ -1,0 +1,3 @@
+-r DPE-Energy-Performance-Analysis-ETL/requirements.txt
+-r DPE-Energy-Performance-Analysis-API/requirements.txt
+-r DPE-Energy-Performance-Analysis-ClientApp/requirements.txt
