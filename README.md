@@ -1,5 +1,7 @@
 # DPE-Energy-Performance-Analysis
-DPE vs Réalité : Il s'agit d'un système d'information en 3 microservices. L'objectif est d'analyser, comparer et prédire et expliquer la Performance Énergétique des logements français.
+DPE vs Réalité : Il s'agit d'un système d'information en 4 microservices. L'objectif est d'analyser, comparer et prédire et expliquer la Performance Énergétique des logements français.
+
+### Last update : 21/02/2025
 
 ### Starter : clone ths repos 
 
@@ -19,3 +21,13 @@ All the requirements paths are defined in requirement txt file. To install by ru
 ```
 
 ### 2 - Run the app locally 
+```
+docker compose build 
+docker compose up -d
+```
+
+### 3 - Microservices
+
+Organisation desc :
+
+![image](docs/microservices.png)

@@ -1,0 +1,64 @@
+services:
+
+  etl:
+    build: DPE-Energy-Performance-Analysis-ETL/.
+    image: dpe-etl:latest  
+    container_name: etlapp
+    depends_on:
+      - api
+    environment:
+      ENVIRONMENT: PROD
+      API_URL: "http://api:8000/"
+      API_TOKEN: "abc###"
+    networks:
+      - dpe-network
+
+  api:
+    build: DPE-Energy-Performance-Analysis-API/.
+    image: dpe-api:latest  # nom explicite de l'image de l'api # actualiser avec le dernier tag du repos de l'api # recup le nom sur 
+    container_name: fastapi
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    environment:
+      ENVIRONMENT: PROD
+      DB_HOST: mongo
+      DB_PORT: 27017 # dans le reseau la db est sur ce port 
+      DB_USER: dpeapi
+      DB_PWD: pwddpeapi
+    networks:
+      - dpe-network
+    links:
+      - mongo
+
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    restart: always
+    ports:
+      - "8001:27017"
+    networks:
+      - dpe-network
+
+  mongo-express:
+    image: mongo-express:0.54
+    container_name: mongo_express
+    ports:
+      - "8003:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017  # se connecter à MongoDB sur son port interne 
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    networks:
+      - dpe-network
+    links:
+      - mongo
+    depends_on:
+      - mongo
+
+networks:
+  dpe-network:
+    driver: bridge
+    
