@@ -1,7 +1,3 @@
-[submodule "DPE-Energy-Performance-Analysis-ETL"]
-	path = DPE-Energy-Performance-Analysis-ETL
-	url = https://github.com/fereol023/DPE-Energy-Performance-Analysis-ETL.git
-	branch = main
 [submodule "DPE-Energy-Performance-Analysis-API"]
 	path = DPE-Energy-Performance-Analysis-API
 	url = https://github.com/fereol023/DPE-Energy-Performance-Analysis-API.git
