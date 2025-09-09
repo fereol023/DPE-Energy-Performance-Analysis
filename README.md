@@ -258,7 +258,7 @@ Pour les mesures de sécurité, on implemente un système d'authentification SSO
 - Le schéma ci-dessous récapitule le fonctionnement du **gitflow** reproduit partout dans le projet avec les pipelines de CI/CD 
 
 <p align="center">
-  <img src="docs/tagging.png" alt="tagging" width="500"/>
+  <img src="./docs/tagging.png" alt="tagging" width="500"/>
 </p>
 
 - Pour toute contribution, vous êtes libre de forker ce repos ou celui d'un des modules en respectant les licences.
