@@ -3,6 +3,12 @@
 **/*.pyc
 **/*.pyo
 **/*.pyd
+**z**
+etl/
+archives/
+.streamlit/
+data/
+ressources/
 
 # Ignore les environnements virtuels
 venv/

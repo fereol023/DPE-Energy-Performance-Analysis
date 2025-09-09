@@ -1,0 +1,222 @@
+services:
+
+  traefik:
+    image: traefik:v2.11
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.webadmin.address=:8005
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --log.level=DEBUG
+    ports:
+      - "80:80"
+      - "8005:8005"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - dpe-bridge
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+  dpe-dashboarding-tool:
+    image: fereol023/dpe-energy-performance-analysis-clientapp:${VERSION_DASHBORD}
+    ports:
+      - 8501:8501
+    depends_on:
+      - api
+      - minio
+    environment:
+      SERVER_API_URL: http://api:8000
+      S3_ACCESS_KEY: ${AWS_S3_STREAMLIT_ACCESS_KEY}
+      S3_SECRET_KEY: ${AWS_S3_STREAMLIT_SECRET_KEY}
+      S3_BUCKET_NAME: ${AWS_S3_STREAMLIT_BUCKET_NAME}
+    networks:
+      - dpe-bridge
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+  api:
+    image: fereol023/dpe-energy-performance-analysis-api:${VERSION_API}
+    depends_on:
+      - db
+      - minio
+      - redis
+      - prefect-server
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.api-strip.stripprefix.prefixes=/api"
+      - "traefik.http.routers.api.middlewares=api-strip"
+    environment:
+      ENV: ${ENV}
+      API_HOST: ${API_HOST}
+      API_PORT: ${API_PORT}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
+      POSTGRES_ADMIN_USERNAME: ${POSTGRES_ADMIN_USERNAME}
+      POSTGRES_ADMIN_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      POSTGRES_READER_USERNAME: ${POSTGRES_READER_USERNAME}
+      POSTGRES_READER_PASSWORD: ${POSTGRES_READER_PASSWORD}
+      POSTGRES_WRITER_USERNAME: ${POSTGRES_WRITER_USERNAME}
+      POSTGRES_WRITER_PASSWORD: ${POSTGRES_WRITER_PASSWORD}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      S3_ENDPOINT_URL: minio:9000
+      PREFECT_API_URL: http://prefect-server:4200/api
+    networks:
+      - dpe-bridge
+    deploy:
+      replicas: 2  # ✅ deux réplicas pour load balancing avec Traefik
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "1.0"
+          memory: 1G
+
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./DPE-Energy-Performance-Analysis-API/storage/postgres:/var/lib/postgresql/data
+    shm_size: 128mb # ✅ shared memory size conservée
+    environment:
+      POSTGRES_USER: ${POSTGRES_ADMIN_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+    networks:
+      - dpe-bridge
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+  minio:
+    image: "minio/minio:latest"
+    restart: always
+    ports:
+      - "9000:9000"
+      - "8900:8900"
+    volumes:
+      - ./DPE-Energy-Performance-Analysis-API/storage/minio:/data/minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: 'minio server /data/minio --console-address ":8900"'
+    networks:
+      - dpe-bridge
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+  prefect-server:
+    image: prefecthq/prefect:3-python3.12
+    restart: always
+    ports:
+      - "4200:4200"
+      - "4201:4201"
+    entrypoint: ["prefect", "server", "start"]
+    command: ["--host", "0.0.0.0", "--port", "4200"]
+    volumes:
+      - ./DPE-Energy-Performance-Analysis-API/storage/prefect:/root/.prefect
+    networks:
+      - dpe-bridge
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1.5G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./DPE-Energy-Performance-Analysis-API/storage/redis:/data
+    networks:
+      - dpe-bridge
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./DPE-Energy-Performance-Analysis-API/storage/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - dpe-bridge
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - dpe-bridge
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+networks:
+  dpe-bridge:
+    driver: overlay

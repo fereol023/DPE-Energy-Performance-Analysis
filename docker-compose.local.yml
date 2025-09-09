@@ -1,0 +1,70 @@
+services:
+
+  db:
+    image: postgres
+    container_name: dpe-dbserver-fullstack
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./DPE-Energy-Performance-Analysis-API/storage/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_ADMIN_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+    networks:
+      - dpe-bridge
+    shm_size: 128mb # shared memory size when using docker-compose
+    mem_limit: 1g
+    cpus: 1.0
+
+  minio:
+    image: "minio/minio:latest"
+    container_name: dpe-filestorage-fullstack
+    restart: always
+    ports:
+      - "9000:9000"
+      - "8900:8900"
+    volumes:
+      - ./DPE-Energy-Performance-Analysis-API/storage/minio:/data/minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: 'minio server /data/minio --console-address ":8900"'
+    networks:
+      - dpe-bridge
+    mem_limit: 512m
+    cpus: 1.0
+
+  prefect-server:
+    image: prefecthq/prefect:3-python3.12
+    container_name: dpe-prefect-server-fullstack
+    restart: always
+    ports:
+      - "4200:4200"
+      - "4201:4201"
+    entrypoint: ["prefect", "server", "start"]
+    command: ["--host", "0.0.0.0", "--port", "4200"]
+    volumes:
+      - ./DPE-Energy-Performance-Analysis-API/storage/prefect:/root/.prefect
+    networks:
+      - dpe-bridge
+    mem_limit: 512m
+    cpus: 1
+
+  redis:
+    image: redis:7-alpine
+    container_name: dpe-redis-fullstack
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./DPE-Energy-Performance-Analysis-API/storage/redis:/data
+    networks:
+      - dpe-bridge
+    mem_limit: 128m
+    cpus: 0.25
+
+networks:
+  dpe-bridge:
+    driver: bridge

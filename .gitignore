@@ -1,5 +1,9 @@
 archives/
-docs/
+.streamlit/
+data/
+ressources/
+**z**
+etl/
 
 # macOS
 .DS_Store

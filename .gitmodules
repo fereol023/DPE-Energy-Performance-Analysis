@@ -6,3 +6,6 @@
 	path = DPE-Energy-Performance-Analysis-ClientApp
 	url = https://github.com/fereol023/DPE-Energy-Performance-Analysis-ClientApp.git
 	branch = main
+[submodule "pipelines_templates"]
+	path = pipelines_templates
+	url = https://github.com/fereol023/pipelines_templates.git
