@@ -13,7 +13,8 @@
 1. [Description du projet](#description-du-projet)  
 2. [Architecture et sécurité](#architecture-et-sécurité) 
 3. [Pré-requis](#pré-requis)  
-4. [Configuration](#configuration)  
+4. [Configuration](#configuration)
+5. [Monitoring](#monitoring)
 5. [Lancer le SI](#lancer-le-si)  
 6. [Utilisation](#utilisation)  
 7. [Authentification et rôles](#authentification-et-rôles)  
@@ -91,7 +92,10 @@ La sécurité est gérée par l'API coté serveur. Pour récupérer de la donné
 
 ## Pré-requis
 
-Python 3.12, Docker, compte DockerHub**
+- Python 3.12
+- Docker desktop
+- Compte DockerHub
+- Compte AWS (optionnel)
 
 ## Configuration 
 
@@ -132,6 +136,33 @@ VERSION_API="v0.19.0.1756058671"
 Pour les versions de l'API et du dashboard, consultez les pages dockerhub : 
 - [Image docker server](https://hub.docker.com/repository/docker/fereol023/dpe-energy-performance-analysis-clientapp) 
 - [Image docker client](https://hub.docker.com/repository/docker/fereol023/dpe-energy-performance-analysis-api)
+
+## Monitoring 
+
+Pour monitorer le SI, on implémente plusieurs solutions : 
+- **mailing de l'état des micro services** fait après pring par l'API Gateway : 
+
+Utilise le même module de mailing que le SSO basé sur le serveur [**SMTP de gmail (procédure ici)**](https://www.hostinger.com/fr/tutoriels/utiliser-serveur-smtp-gmail).
+- monitoring via **Prefect UI** pour l'ETL et les logs
+- monitoring de l'API elle même via **Prometheus + Grafana**
+
+Ceci est possible grâce au client prometheus qui est utilisé dans l'API. Pour configurer le collecteur de métrqiues prometheus, il faut mettre dans un bind mount le fichier de fichier de config suivant. A mettre dans `/DPE-Energy-Performance-Analysis-API/storage/prometheus/prometheus.yml` car les docker compose files sont configurés ainsi (voir volume prometheus).
+````
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "api-functions-profiling"
+    metrics_path: /profiling
+    static_configs:
+      - targets: ["api:8000"]
+
+  - job_name: "api-system-metrics"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:8000"]
+````
+
 
 * Option 2 : Configuration en partant de la code base
 
@@ -240,6 +271,39 @@ Pour le serveur, la documentation interactive est accessible via le swagger.
 </p>
 
 Pour plus d'information sur l'utilisation de l'app cliente, un [support de formation est disponible ici](docs/Support%20de%20formation%20-%20dashboard%20analytique.pdf)
+
+#### Utilisation - monitoring
+
+<p align="center">
+<u>Figure:</u> Panel admin dans l'app
+<p align="center">
+  <img src="docs/admin-panel.png" alt="swagger" width="500"/>
+</p>
+
+Etant connecté en tant qu'administatrateur dans l'app client, les solutions de monitoring énumérées ci-dessus sont toutes accessibles sur la première page. Plus précisément, lorsque l'admin se connecte : 
+- il reçoit un état global du SI par mail avec messages d'erreur si erreur il y a.
+
+<p align="center">
+<u>Figure:</u> SI Global State Report to Admin
+<p align="center">
+  <img src="docs/microservices-report.png" alt="swagger" width="500"/>
+</p>
+
+- il peut accéder à l'UI prefect sur le `server:4200`
+
+<p align="center">
+<u>Figure:</u> Prefect UI
+<p align="center">
+  <img src="docs/prefect-ui.png" alt="swagger" width="500"/>
+</p>
+
+- il peut accéder au dashboard grafana pour voir **les métriques CPU, RAM etc** de l'API et le profiling de toutes les fonctions utilisées sur le `serveur:3000`
+
+<p align="center">
+<u>Figure:</u> Dashboard Grafana Monitoring
+<p align="center">
+  <img src="docs/grafana-dash.png" alt="swagger" width="500"/>
+</p>
 
 ## Authentification et rôles
 
