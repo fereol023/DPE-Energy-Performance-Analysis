@@ -95,8 +95,8 @@ services:
       SCHEMA_GOLDEN_DATA_FILEPATH: config/schema_golden_data.json
     networks:
       - dpe-bridge
-    mem_limit: 512m
-    cpus: 1.0
+    mem_limit: 2.5g
+    cpus: 2.0
 
   for-fastapi-swagger:
     image: fereol023/dpe-energy-performance-analysis-api:${VERSION_API}
@@ -120,8 +120,8 @@ services:
       - 8001:8001
     networks:
       - dpe-bridge
-    mem_limit: 128m
-    cpus: 0.5
+    mem_limit: 512m
+    cpus: 1
 
   db:
     image: postgres
