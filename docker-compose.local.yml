@@ -7,7 +7,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./DPE-Energy-Performance-Analysis-API/storage/postgres:/var/lib/postgresql/data
+      - ./DPE-Energy-Performance-Analysis-ETL/.volume/postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${POSTGRES_ADMIN_USERNAME}
       POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
@@ -26,7 +26,7 @@ services:
       - "9000:9000"
       - "8900:8900"
     volumes:
-      - ./DPE-Energy-Performance-Analysis-API/storage/minio:/data/minio
+      - ./DPE-Energy-Performance-Analysis-ETL/.volume/minio:/data/minio
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -46,7 +46,7 @@ services:
     entrypoint: ["prefect", "server", "start"]
     command: ["--host", "0.0.0.0", "--port", "4200"]
     volumes:
-      - ./DPE-Energy-Performance-Analysis-API/storage/prefect:/root/.prefect
+      - ./DPE-Energy-Performance-Analysis-ETL/.volume/prefect:/root/.prefect
     networks:
       - dpe-bridge
     mem_limit: 512m
@@ -59,7 +59,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - ./DPE-Energy-Performance-Analysis-API/storage/redis:/data
+      - ./DPE-Energy-Performance-Analysis-ETL/.volume/redis:/data
     networks:
       - dpe-bridge
     mem_limit: 128m

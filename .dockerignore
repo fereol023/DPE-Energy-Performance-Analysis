@@ -9,6 +9,7 @@ archives/
 .streamlit/
 data/
 ressources/
+.volume/
 
 # Ignore les environnements virtuels
 venv/
